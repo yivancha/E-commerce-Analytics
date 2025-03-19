@@ -1,0 +1,13 @@
+# We choose sessions where the language field contains English with specific variations (e.g., en-us, en-gb).
+# Then we group the results by these variations and count the number of sessions for each variation.
+
+
+
+SELECT SUBSTR(language, 4) AS en_type,
+       COUNT(*) AS session_cnt
+
+FROM `data-analytics-mate.DA.session_params`
+
+WHERE language LIKE 'en-%'
+GROUP BY en_type
+ORDER BY session_cnt DESC;
