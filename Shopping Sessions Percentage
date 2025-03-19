@@ -1,0 +1,17 @@
+# We calculate the percentage of sessions with purchases for each country. 
+# The percentage of sessions with purchases is calculated as the ratio of the number of sessions in which purchases were made to the total number of sessions for that country.
+
+SELECT
+ spm.country,
+ COUNT(ord.ga_session_id) / COUNT(spm.ga_session_id) * 100 AS session_with_orders_percent,
+ COUNT(spm.ga_session_id) AS session_cnt
+FROM
+ `data-analytics-mate.DA.session_params` spm
+LEFT JOIN
+ `data-analytics-mate.DA.order` ord
+ON
+ ord.ga_session_id = spm.ga_session_id
+GROUP BY
+ spm.country
+ORDER BY
+ session_cnt DESC;
