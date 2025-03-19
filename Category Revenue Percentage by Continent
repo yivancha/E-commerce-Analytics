@@ -1,0 +1,18 @@
+# We calculate for each continent the total revenue (revenue).
+# Determine the revenue from the "Bookcases & Shelving Units" category (revenue_from_bookcases).
+# Count the percentage of revenue from the "Bookcases & Shelving Units" category relative to the total revenue for the continent (revenue_from_bookcases_percent).
+
+SELECT
+spm.continent,
+SUM(prd.price) AS revenue,
+SUM(CASE WHEN prd.category = 'Bookcases & shelving units' THEN prd.price END) AS revenue_from_bookcases,
+SUM(CASE WHEN prd.category = 'Bookcases & shelving units' THEN prd.price END) / SUM(prd.price) * 100 AS revenue_from_bookcases_percent
+
+FROM `data-analytics-mate.DA.order` ord
+JOIN `data-analytics-mate.DA.session_params` spm
+ON ord.ga_session_id = spm.ga_session_id
+JOIN `data-analytics-mate.DA.product` prd
+ON ord.item_id = prd.item_id
+
+GROUP BY spm.continent
+ORDER BY revenue DESC;
