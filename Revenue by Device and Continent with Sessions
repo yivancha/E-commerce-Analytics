@@ -1,0 +1,40 @@
+# Common Table Expressions (CTE)
+# We write a query that produces a result in the following format: 
+# ​​Continent - Revenue - Revenue from Mobile - Revenue from Desktop - % Revenue from Total -  Account Count - Verified Account - Session Count.
+
+WITH revenue_usd AS (
+SELECT spm.continent,
+      SUM(prd.price) AS revenue,
+      SUM(CASE WHEN device = 'mobile' THEN prd.price END) AS revenue_from_mobile,
+      SUM(CASE WHEN device = 'desktop' THEN prd.price END) AS revenue_from_desktop
+FROM `data-analytics-mate.DA.order` ord
+JOIN `data-analytics-mate.DA.product` prd
+ON ord.item_id = prd.item_id
+JOIN `data-analytics-mate.DA.session_params` spm
+ON ord.ga_session_id = spm.ga_session_id
+GROUP BY spm.continent ),
+
+acc_session_total AS (
+SELECT spm.continent,
+      COUNT(acs.account_id) AS account_cnt,
+      COUNT(CASE WHEN acc.is_verified = 1 THEN acc.id END) AS acc_verified,
+      COUNT(spm.ga_session_id) AS session_cnt
+FROM `data-analytics-mate.DA.session_params` spm
+LEFT JOIN `data-analytics-mate.DA.account_session` acs
+ON spm.ga_session_id = acs.ga_session_id
+LEFT JOIN `data-analytics-mate.DA.account` acc
+ON acs.account_id = acc.id
+GROUP BY spm.continent )
+
+SELECT acc_session_total.continent,
+       revenue_usd.revenue,
+       revenue_usd.revenue_from_mobile,
+       revenue_usd.revenue_from_desktop,
+       revenue / SUM(revenue) OVER() * 100 AS revenue_from_total_percent,
+       acc_session_total.account_cnt,
+       acc_session_total.acc_verified,
+       acc_session_total.session_cnt  
+FROM acc_session_total
+LEFT JOIN revenue_usd
+ON acc_session_total.continent = revenue_usd.continent
+ORDER BY revenue_usd.revenue DESC;
